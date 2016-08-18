@@ -132,6 +132,13 @@ options:
       - The socket level timeout in seconds
     required: false
     default: 30
+  use_proxy:
+      description:
+        - if C(no), it will not use a proxy, even if one is defined in
+          an environment variable on the target hosts.
+      required: false
+      default: 'yes'
+      choices: ['yes', 'no']
   HEADER_:
     description:
       - Any parameter starting with "HEADER_" is a sent with your request as a header.
@@ -296,7 +303,7 @@ def absolute_location(url, location):
         return location
 
 
-def uri(module, url, dest, body, body_format, method, headers, socket_timeout):
+def uri(module, url, dest, body, body_format, method, headers, socket_timeout, use_proxy):
     # is dest is set and is a directory, let's check if we get redirected and
     # set the filename from that url
     redirected = False
@@ -313,7 +320,8 @@ def uri(module, url, dest, body, body_format, method, headers, socket_timeout):
             _, redir_info = fetch_url(module, url, data=body,
                                       headers=headers,
                                       method=method,
-                                      timeout=socket_timeout)
+                                      timeout=socket_timeout,
+                                      use_proxy=use_proxy)
             # if we are redirected, update the url with the location header,
             # and update dest with the new url filename
             if redir_info['status'] in (301, 302, 303, 307):
@@ -330,7 +338,7 @@ def uri(module, url, dest, body, body_format, method, headers, socket_timeout):
         module.params['follow_redirects'] = follow_redirects
 
     resp, info = fetch_url(module, url, data=body, headers=headers,
-                           method=method, timeout=socket_timeout)
+                           method=method, timeout=socket_timeout, use_proxy=use_proxy)
 
     try:
         content = resp.read()
@@ -380,6 +388,7 @@ def main():
     removes = module.params['removes']
     status_code = [int(x) for x in list(module.params['status_code'])]
     socket_timeout = module.params['timeout']
+    use_proxy = module.params['use_proxy']
 
     dict_headers = module.params['headers']
 
@@ -413,7 +422,7 @@ def main():
 
     # Make the request
     resp, content, dest = uri(module, url, dest, body, body_format, method,
-                              dict_headers, socket_timeout)
+                              dict_headers, socket_timeout, use_proxy)
     resp['status'] = int(resp['status'])
 
     # Write the file out if requested
