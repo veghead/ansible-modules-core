@@ -133,12 +133,13 @@ options:
     required: false
     default: 30
   use_proxy:
-      description:
-        - if C(no), it will not use a proxy, even if one is defined in
-          an environment variable on the target hosts.
-      required: false
-      default: 'yes'
-      choices: ['yes', 'no']
+    description:
+      - if C(no), it will not use a proxy, even if one is defined in
+        an environment variable on the target hosts.
+    required: false
+    default: 'yes'
+    choices: ['yes', 'no']
+    version_added: '2.2'
   HEADER_:
     description:
       - Any parameter starting with "HEADER_" is a sent with your request as a header.
